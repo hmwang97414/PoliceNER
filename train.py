@@ -42,7 +42,6 @@ class evaluate_BiLSTM_CRF(object):
     def train(self, train_word_lists, train_tag_lists, train_pinyin, train_pre_tag, dev_word_lists, dev_tag_lists,
               dev_pre_tag, dev_pinyin):
         # print(train_position_tag)
-        # 1.将word_lists按照长度排序
         train_lists, train_tags, train_pre_tag, train_pinyin, _ = sort_by_lengths_preTag(train_word_lists,
                                                                                          train_tag_lists,
                                                                                          train_pre_tag,
@@ -50,29 +49,21 @@ class evaluate_BiLSTM_CRF(object):
         dev_lists, dev_tags, dev_pre_tag, dev_pinyin, _ = sort_by_lengths_preTag(dev_word_lists, dev_tag_lists,
                                                                                  dev_pre_tag, dev_pinyin)
 
-        # print(word_lists)
-        # print(tag_lists)
-
-        # model.train()
         for i in range(self.epoch):
             self.model.train()
             step = 0
             loss = 0
             train_lists = [x for x in train_lists if len(x) >= 1]
             train_tags = [x for x in train_tags if len(x) >= 1]
-            # 预识别的tag
             pre_tags = [x for x in train_pre_tag if len(x) >= 1]
             pinyin_tags = [x for x in train_pinyin if len(x) >= 1]
             total_step = len(train_lists) // self.batch_size + 1
             for j in range(0, len(train_lists), self.batch_size):
                 step += 1
-                # 每一个batch的数据和tag
                 batch_sents = train_lists[j:j + self.batch_size]
                 batch_tags = train_tags[j:j + self.batch_size]
                 batch_pre_tags = pre_tags[j:j + self.batch_size]
                 batch_pinyin = pinyin_tags[j:j + self.batch_size]
-                # 设置为相同长度，不足的补pad,并转为tensor
-                # print(batch_sents)
                 word_lists_tensor, lengths = tensorized(batch_sents, self.word2id)
                 tag_lists_tensor, lengths = tensorized(batch_tags, self.tag2id)
                 pre_tag_tensor, lengths = tensorized(batch_pre_tags, self.tag2id)
@@ -101,12 +92,10 @@ class evaluate_BiLSTM_CRF(object):
                 # if step % 10 == 0:
                 # print(
                 #     "Epoch {},step/total_step: {}/{} Loss:{:.4f}".format(i + 1, step, total_step, loss.item() / 10))
-            # 每轮结束测试在验证集上的性能，保存最好的一个
             val_loss = self.validate(dev_lists, dev_tags, dev_pre_tag, dev_pinyin)
             # print("Epoch {}, Val Loss:{:.4f}".format(i + 1, val_loss))
 
     def validate(self, dev_word_lists, dev_tag_lists, dev_pre_tag, dev_pinyin):
-        # 用验证集测试模型的效果
         self.model.eval()
         with torch.no_grad():
             val_losses = 0.
@@ -157,10 +146,9 @@ class evaluate_BiLSTM_CRF(object):
         test_pinyin_tag, lengths = tensorized(test_pinyin, self.pinyin2id)
 
         id2tag = dict((id_, tag) for tag, id_ in self.tag2id.items())
-        # 用best_model进行预测
         self.best_model.eval()
-        # self.model.load_state_dict(torch.load("saved_model/bilstm_crf.pth"))
-        # self.model.eval()
+        self.model.load_state_dict(torch.load("saved_model/bilstm_crf.pth"))
+        self.model.eval()
         with torch.no_grad():
             mask = (tests_word_tensor != self.word2id['<pad>'])
             tests_word_tensor = tests_word_tensor.to(self.device)
@@ -176,11 +164,5 @@ class evaluate_BiLSTM_CRF(object):
             for j in range(lengths[i]):
                 tag_list.append(id2tag[ids[j]])
             pred_tag_lists.append(tag_list)
-
-        # print("原始文本:", test_lists[121])
-        # print("测试数据真实标签：", test_tags[121])
-        # print("预测标签：", pred_tag_lists[121])
-        # print(len(test_tags))
-        # print(len(pred_tag_lists))
 
         return test_tags, pred_tag_lists

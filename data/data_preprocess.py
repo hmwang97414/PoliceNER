@@ -52,42 +52,25 @@ def build_corpus(split, make_vocab=True, data_dir="./data/Police2000"):
         return word_lists, tag_lists
 
 
-# 从预标注的文本中，找到tag
 def get_preTag(split, data_dir="./data/Police2000"):
     """读取数据"""
-    assert split in ['train_id_tag', 'dev_id_tag', 'test_id_tag']
+    assert split in ['train_tag', 'dev_tag', 'test_tag']
     tag_lists = []
-    position_lists = []
     with open(join(data_dir, split + ".txt"), 'r', encoding='utf-8') as f:
         tag_list = []
-        position_list = []
         for line in f.readlines():
             try:
-                word, tag, position = line.strip('\n').strip("\r").split("\t")
-                # print(word,tag,position)
-                # word, tag = line.strip('\n').strip("\r").split("\t")
-                # print(tag)
+                word, tag = line.strip('\n').strip("\r").split("\t")
                 tag_list.append(tag)
-                position_list.append(position)
             except:
                 tag_lists.append(tag_list)
-                position_lists.append(position_list)
-                # id_lists.append(id_list)
                 tag_list = []
-                position_list = []
-    position2id = build_map(position_lists)
-    position2id['<unk>'] = len(position2id)
-    position2id['<pad>'] = len(position2id)
-
-    return tag_lists, position_lists, position2id
+    return tag_lists
 
 def get_pinyin(split, data_dir="./data/Police2000"):
-    """读取数据"""
     assert split in ['train_pinyin', 'dev_pinyin', 'test_pinyin']
-    # tag_lists = []
     pinyin_lists = []
     with open(join(data_dir, split + ".txt"), 'r', encoding='utf-8') as f:
-        # tag_list = []
         pinyin_list = []
         for line in f.readlines():
             try:
@@ -96,7 +79,6 @@ def get_pinyin(split, data_dir="./data/Police2000"):
                 pinyin_list.append(pinyin)
             except:
                 pinyin_lists.append(pinyin_list)
-                # id_lists.append(id_list)
                 pinyin_list = []
     pinyin2id = build_map(pinyin_lists)
     pinyin2id['<unk>'] = len(pinyin2id)
@@ -105,17 +87,6 @@ def get_pinyin(split, data_dir="./data/Police2000"):
     return pinyin_lists, pinyin2id
 
 
-# 从无标签的数据中取num条数据
-def toList(filename, num):
-    file = open(filename, "r", encoding="utf-8")
-    # 打乱file的顺序
-    file_List = []
-    for line in file.readlines():
-        line = line.replace("\n", "")
-        line = line.replace("\r", "")
-        file_List.append(line)
-    random.shuffle(file_List)
-    return file_List[0:num]
 
 
 def build_map(lists):

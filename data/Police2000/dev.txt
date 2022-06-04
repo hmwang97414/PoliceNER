@@ -1,0 +1,13 @@
+新 B-LOC
+街 I-LOC
+口 I-LOC
+外 I-LOC
+大 I-LOC
+街 E-LOC
+3 O
+1 O
+号 O
+院 O
+被 B-CT
+盗 I-CT
+刷 E-CT

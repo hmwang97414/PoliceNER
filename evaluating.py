@@ -4,20 +4,13 @@ from util import flatten_lists
 
 
 class Metrics(object):
-    """用于评价模型，计算每个标签的精确率，召回率，F1分数"""
 
     def __init__(self, golden_tags, predict_tags, remove_O=False):
 
         # [[t1, t2], [t3, t4]...] --> [t1, t2, t3, t4...]
         self.golden_tags = flatten_lists(golden_tags)
         self.predict_tags = flatten_lists(predict_tags)
-        # print("真实：",self.golden_tags)
-        # print("真实类型：", type(self.golden_tags))
-        # print("预测：", self.predict_tags)
-        # print("预测类型：", type(self.predict_tags))
-        # print(predict_tags)
-        # 如果remove_O为true，就去除所有的O标签
-        if remove_O:  # 将O标记移除，只关心实体标记
+        if remove_O:  #
             self._remove_Otags()
 
         # 辅助计算的变量
@@ -246,28 +239,3 @@ class Metrics(object):
             len(O_tag_indices) / length * 100
         ))
 
-    def report_confusion_matrix(self):
-        """计算混淆矩阵"""
-
-        print("\nConfusion Matrix:")
-        tag_list = list(self.tagset)
-        # 初始化混淆矩阵 matrix[i][j]表示第i个tag被模型预测成第j个tag的次数
-        tags_size = len(tag_list)
-        matrix = []
-        for i in range(tags_size):
-            matrix.append([0] * tags_size)
-
-        # 遍历tags列表
-        for golden_tag, predict_tag in zip(self.golden_tags, self.predict_tags):
-            try:
-                row = tag_list.index(golden_tag)
-                col = tag_list.index(predict_tag)
-                matrix[row][col] += 1
-            except ValueError:  # 有极少数标记没有出现在golden_tags，但出现在predict_tags，跳过这些标记
-                continue
-
-        # 输出矩阵
-        row_format_ = '{:>7} ' * (tags_size + 1)
-        print(row_format_.format("", *tag_list))
-        for i, row in enumerate(matrix):
-            print(row_format_.format(tag_list[i], *row))
